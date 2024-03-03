@@ -2,8 +2,9 @@
 #define CHESS_H
 
 #include <ncurses.h>
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 
 #define g_BOARD_SIZE 8
@@ -24,6 +25,12 @@ typedef enum color_e {
   WHITE = 'w',
 } color_t;
 
+/**
+ * struct piece - represents a chess piece.
+ *
+ * @type: 
+ *
+ */
 typedef struct piece_s {
   piece_type_t type;
   color_t color;
@@ -44,7 +51,9 @@ typedef struct board_s {
   unsigned int moves_num;
 } board_t;
 
+
 board_t *board_create(void);
+void board_print(board_t *board);
 void board_show(board_t *board);
 void board_free(board_t *board);
 

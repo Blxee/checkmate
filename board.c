@@ -52,6 +52,29 @@ board_t *board_create(void) {
   return board;
 }
 
+
+void board_print(board_t *board) {
+  int i, j, k;
+  char buf[g_BOARD_CELLS * 2];
+
+  k = 0;
+  for (i = 0; i < g_BOARD_SIZE; i++) {
+    for (j = 0; j < g_BOARD_SIZE; j++) {
+      if (board->grid.matrix[i][j].piece)
+        buf[k++] = board->grid.matrix[i][j].piece->type;
+      else
+        buf[k++] = '.';
+
+      if (j != g_BOARD_SIZE - 1)
+        buf[k++] = ' ';
+    }
+    buf[k++] = '\n';
+  }
+
+  write(STDOUT_FILENO, buf, sizeof(buf));
+}
+
+
 void board_show(board_t *board) {
   cell_t *cell;
   short black_bg = 0b00000001;
@@ -84,7 +107,7 @@ void board_show(board_t *board) {
       attron(COLOR_PAIR(fg | bg) | A_BOLD);
       if (cell->piece)
         printw(" %c%c ",
-               cell->piece->color,
+               cell->piece->type,
                cell->piece->type);
       else
         addstr("    ");
@@ -114,4 +137,10 @@ void board_show(board_t *board) {
   attron(COLOR_PAIR(border_color));
   for (int i = 0; i < 17; i++)
     addstr("▀▀");
+}
+
+
+int board_mvpiece(board_t *board) {
+
+  return NULL;
 }

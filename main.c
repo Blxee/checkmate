@@ -19,10 +19,7 @@ int main(void)
   curs_set(0);
 
   getmaxyx(stdscr, g_MAX_COLS, g_MAX_ROWS);
-  move(g_MAX_COLS / 2, g_MAX_ROWS / 2 - 3);
-  init_pair(1, COLOR_BLUE, COLOR_WHITE);
-  attron(COLOR_PAIR(1));
-  addstr("hello");
+
   board_show(board);
   refresh();
 
@@ -30,5 +27,6 @@ int main(void)
   getch();
   endwin();
 
+  board_print(board);
   return (0);
 }
