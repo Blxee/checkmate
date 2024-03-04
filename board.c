@@ -90,17 +90,17 @@ void board_show(board_t *board) {
   init_pair(white_fg | black_bg, COLOR_WHITE, COLOR_BLUE);
   init_pair(border_color, COLOR_WHITE, COLOR_BLACK);
 
-  move(g_MAX_COLS / 2 - 9, g_MAX_ROWS / 2 - 17);
+  move(g_MAX_COLS / 2 - g_BOARD_SIZE - 1, g_MAX_ROWS / 2 - 2 * g_BOARD_SIZE - 1);
   attron(COLOR_PAIR(border_color) | A_BOLD);
-  for (int i = 0; i < 17; i++)
-    addstr("▄▄");
+  for (int i = 0; i < 2 * g_BOARD_SIZE + 1; i++)
+    addstr("\u2584\u2584");
 
-  for (int i = 0; i < 8; i++) {
-    move(g_MAX_COLS / 2 - 8 + i * 2, g_MAX_ROWS / 2 - 17);
+  for (int i = 0; i < g_BOARD_SIZE; i++) {
+    move(g_MAX_COLS / 2 - g_BOARD_SIZE + i * 2, g_MAX_ROWS / 2 - 2 * g_BOARD_SIZE - 1);
     attron(COLOR_PAIR(border_color));
-    addstr("█");
+    addstr("\u2588");
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < g_BOARD_SIZE; j++) {
       cell = &board->grid.matrix[i][j];
       fg = cell->piece && cell->piece->color == BLACK ? black_fg : white_fg;
       bg = (i + (j & 1)) & 1 ? black_bg : white_bg;
@@ -114,17 +114,17 @@ void board_show(board_t *board) {
     }
 
     attron(COLOR_PAIR(border_color));
-    addstr("█");
-    move(g_MAX_COLS / 2 - 8 + i * 2 + 1, g_MAX_ROWS / 2 - 17);
-    addstr("█");
+    addstr("\u2588");
+    move(g_MAX_COLS / 2 - g_BOARD_SIZE + i * 2 + 1, g_MAX_ROWS / 2 - 2 * g_BOARD_SIZE - 1);
+    addstr("\u2588");
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < g_BOARD_SIZE; j++) {
       cell = &board->grid.matrix[i][j];
       fg = cell->piece && cell->piece->color == BLACK ? black_fg : white_fg;
       bg = (i + (j & 1)) & 1 ? black_bg : white_bg;
       attron(COLOR_PAIR(fg | bg) | A_BOLD);
       if (cell->piece)
-        addstr(" ▀▀ ");
+        addstr(" \u2580\u2580 ");
       else
         addstr("    ");
     }
@@ -133,10 +133,10 @@ void board_show(board_t *board) {
     addstr("█");
   }
 
-  move(g_MAX_COLS / 2 + 8, g_MAX_ROWS / 2 - 17);
+  move(g_MAX_COLS / 2 + g_BOARD_SIZE, g_MAX_ROWS / 2 - 2 * g_BOARD_SIZE - 1);
   attron(COLOR_PAIR(border_color));
-  for (int i = 0; i < 17; i++)
-    addstr("▀▀");
+  for (int i = 0; i < 2 * g_BOARD_SIZE + 1; i++)
+    addstr("\u2580\u2580");
 }
 
 
