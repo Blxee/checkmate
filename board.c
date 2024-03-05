@@ -26,6 +26,7 @@ board_t *board_create(void) {
   // init the cells of the board
   board->turn = (rand() & 1) ? BLACK : WHITE;
   board->moves_num = 0;
+  board->check_piece = NULL;
   for (i = 0; i < g_BOARD_CELLS; i++)
     board->grid.vector[i] = (cell_t){
       .piece = NULL,
@@ -43,9 +44,13 @@ board_t *board_create(void) {
         *board->grid.matrix[i][j].piece = (piece_t){
           .color = tile[0],
           .type = tile[1],
+          .pos = (point_t){.x = i, .y = j},
           .moves_num = 0,
+          // .king
         };
       }
+
+      /// set kings of north and south
     }
   }
 
@@ -137,6 +142,66 @@ void board_show(board_t *board) {
   attron(COLOR_PAIR(border_color));
   for (int i = 0; i < 2 * g_BOARD_SIZE + 1; i++)
     addstr("\u2580\u2580");
+}
+
+
+int piece_pattern(board_t *board, piece_t *piece, int tar_x, int tar_y) {
+  int src_x, src_y;
+  int pawn_step;
+
+  if (piece == NULL)
+    return -1;
+
+  src_x = piece->pos.x;
+  src_y = piece->pos.y;
+
+  // if piece trying to move to the same place
+  if (tar_x == src_x && tar_y == src_y)
+    return 0;
+
+  switch (piece->type) {
+    case KING:
+      return tar_x - src_x <= 1 && tar_y - src_y <= 1;
+    case QUEEN:
+      return (abs(tar_x - src_x) == abs(tar_y - src_y))
+          || (tar_x == src_x || tar_y == src_y);
+    case BISHOP:
+      return abs(tar_x - src_x) == abs(tar_y - src_y);
+    case KNIGHT:
+      return (abs(tar_x - src_x) == 1 && abs(tar_y - src_y) == 2)
+          || (abs(tar_x - src_x) == 2 && abs(tar_y - src_y) == 1);
+    case ROOK:
+      return tar_x == src_x || tar_y == src_y;
+    case PAWN:
+      pawn_step = piece->moves_num == 0 ? 2 : 1;
+      if (piece->king == board->king_north)
+        return tar_x == src_x
+            && tar_y - src_y > 0
+            && tar_y - src_y <= pawn_step;
+      else if (piece->king == board->king_south)
+        return tar_x == src_x
+            && src_y - tar_y > 0
+            && src_y - tar_y <= pawn_step;
+  }
+  // this should not be reached normally
+  return -1;
+}
+
+
+int piece_protecting(board_t *board, int x, int y) {
+  if (board == NULL)
+    return -1;
+
+  // if piece is not threatened then it's not protecting
+  if (!board->grid.matrix[x][y].threatened)
+    return 0;
+}
+
+
+int piece_can_protect(board_t *board, int x, int y) {
+  if (board == NULL)
+    return -1;
+
 }
 
 
