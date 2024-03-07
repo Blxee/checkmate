@@ -203,9 +203,9 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
   if (rook_cell->piece == NULL)
     return 0;
 
-  // if rook isn't of correct type or has moved already
+  // if rook isn't of correct type and color or has moved already
   rook = rook_cell->piece;
-  if (rook->type != ROOK || rook->moves_num > 0)
+  if (rook->type != ROOK || rook->color != king->color || rook->moves_num > 0)
     return 0;
 
   // if space between is not empty
