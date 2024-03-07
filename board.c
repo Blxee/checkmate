@@ -144,12 +144,91 @@ void board_show(board_t *board) {
     addstr("\u2580\u2580");
 }
 
+static cell_t **s_cells_array;
+cell_t **board_cells_between(board_t *board, point_t pos1, point_t pos2) {
+
+}
+
+static piece_t **s_pieces_array;
+piece_t **board_pieces_between(board_t *board, point_t pos1, point_t pos2) {
+
+}
+
+int piece_set_pos(board_t *board, piece_t *piece, point_t tar) {
+  cell_t *target_cell;
+
+  if (piece == NULL)
+    return 0;
+
+  if (tar.x < 0 || tar.x >= g_BOARD_SIZE
+    || tar.y < 0 || tar.y >= g_BOARD_SIZE)
+    return 0;
+
+  // empty piece position
+  board->grid.matrix[piece->pos.x][piece->pos.y].piece = NULL;
+  // free previous piece if any
+  target_cell = &board->grid.matrix[tar.x][tar.y];
+  if (target_cell->piece != NULL)
+    free(target_cell->piece);
+  // move piece to new position
+  target_cell->piece = piece;
+  piece->pos = tar;
+
+  return 1;
+}
+
+int try_castling(board_t *board, piece_t *king, point_t tar) {
+  point_t src;
+  point_t rook_tar;
+  int rook_x;
+  cell_t *rook_cell;
+  piece_t *rook;
+
+  if (king == NULL)
+    return -1;
+
+  src = king->pos;
+
+  // if king has moved already
+  if (king->moves_num > 0)
+    return 0;
+
+  // if target position is within bounds
+  if (tar.y != src.y || abs(tar.x - src.x) != 2)
+    return 0;
+
+  // get target rook if exists
+  rook_x = tar.x < src.x ? 0 : (g_BOARD_SIZE - 1);
+  rook_cell = &board->grid.matrix[rook_x][src.y];
+  if (rook_cell->piece == NULL)
+    return 0;
+
+  // if rook isn't of correct type or has moved already
+  rook = rook_cell->piece;
+  if (rook->type != ROOK || rook->moves_num > 0)
+    return 0;
+
+  // if space between is not empty
+  if (board_pieces_between(board, king->pos, rook->pos))
+    return 0;
+
+  piece_set_pos(board, king, tar);
+  rook_tar = (point_t){
+    .x = tar.x < src.x ? tar.x + 1 : tar.x - 1,
+    .y = src.y,
+  };
+  piece_set_pos(board, rook, rook_tar);
+  return 1;
+}
+
+int try_en_passant(board_t *board, piece_t *pawn, int tar_x, int tar_y) {
+}
 
 int piece_pattern(board_t *board, piece_t *piece, int tar_x, int tar_y) {
   int src_x, src_y;
   int pawn_step;
 
-  if (piece == NULL)
+  if (piece == NULL || board == NULL)
     return -1;
 
   src_x = piece->pos.x;
