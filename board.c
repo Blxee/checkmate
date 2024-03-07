@@ -193,7 +193,7 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
   if (king->moves_num > 0)
     return 0;
 
-  // if target position is within bounds
+  // if target position isn't within bounds
   if (tar.y != src.y || abs(tar.x - src.x) != 2)
     return 0;
 
