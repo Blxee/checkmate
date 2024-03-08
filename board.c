@@ -181,10 +181,9 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
   point_t src;
   point_t rook_tar;
   int rook_x;
-  cell_t *rook_cell;
   piece_t *rook;
 
-  if (king == NULL)
+  if (board == NULL || king == NULL)
     return -1;
 
   src = king->pos;
@@ -197,15 +196,10 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
   if (tar.y != src.y || abs(tar.x - src.x) != 2)
     return 0;
 
-  // get target rook if exists
-  rook_x = tar.x < src.x ? 0 : (g_BOARD_SIZE - 1);
-  rook_cell = &board->grid.matrix[rook_x][src.y];
-  if (rook_cell->piece == NULL)
-    return 0;
-
   // if rook isn't of correct type and color or has moved already
-  rook = rook_cell->piece;
-  if (rook->type != ROOK || rook->color != king->color || rook->moves_num > 0)
+  rook_x = tar.x < src.x ? 0 : (g_BOARD_SIZE - 1);
+  rook = board->grid.matrix[rook_x][src.y].piece;
+  if (rook == NULL || rook->type != ROOK || rook->color != king->color || rook->moves_num > 0)
     return 0;
 
   // if space between is not empty
@@ -221,46 +215,79 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
   return 1;
 }
 
-int try_en_passant(board_t *board, piece_t *pawn, int tar_x, int tar_y) {
+int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
+  point_t src;
+  int y_direction;
+  piece_t *foe;
+
+  if (board == NULL || pawn == NULL)
+    return -1;
+
+  src = pawn->pos;
+
+  if (pawn->king == board->king_north)
+    y_direction = 1;
+  else if (pawn->king == board->king_south)
+    y_direction = -1;
+  else
+    return -1;
+
+  if (abs(tar.x - src.x) != 1 || tar.y - src.y != y_direction)
+    return 0;
+
+  foe = board->grid.matrix[src.x][tar.y].piece;
+  if (foe == NULL || foe->color == pawn->color)
+    return 0;
+
+  if (foe->type != PAWN || /*not moved 2*/)
+    return 0;
+
+  piece_set_pos(board, pawn, tar);
+  return 1;
 }
 
-int piece_pattern(board_t *board, piece_t *piece, int tar_x, int tar_y) {
-  int src_x, src_y;
-  int pawn_step;
+int piece_pattern(board_t *board, piece_t *piece, point_t tar) {
+  point_t src;
+  piece_t *foe;
+  int pawn_step, pawn_direction;
 
   if (piece == NULL || board == NULL)
     return -1;
 
-  src_x = piece->pos.x;
-  src_y = piece->pos.y;
+  // if target position has an ally instead of a foe
+  foe = board->grid.matrix[tar.x][tar.y].piece;
+  if (foe != NULL && foe->color == piece->color)
+    return 0;
+
+  src = piece->pos;
 
   // if piece trying to move to the same place
-  if (tar_x == src_x && tar_y == src_y)
+  if (tar.x == src.x && tar.y == src.y)
     return 0;
 
   switch (piece->type) {
-    case KING:
-      return tar_x - src_x <= 1 && tar_y - src_y <= 1;
+    case KING: // if threatened..
+      if (try_castling(board, piece, tar) == 1)
+        return 1;
+      return tar.x - src.x <= 1 && tar.y - src.y <= 1;
     case QUEEN:
-      return (abs(tar_x - src_x) == abs(tar_y - src_y))
-          || (tar_x == src_x || tar_y == src_y);
+      return (abs(tar.x - src.x) == abs(tar.y - src.y))
+          || (tar.x == src.x || tar.y == src.y);
     case BISHOP:
-      return abs(tar_x - src_x) == abs(tar_y - src_y);
+      return abs(tar.x - src.x) == abs(tar.y - src.y);
     case KNIGHT:
-      return (abs(tar_x - src_x) == 1 && abs(tar_y - src_y) == 2)
-          || (abs(tar_x - src_x) == 2 && abs(tar_y - src_y) == 1);
+      return (abs(tar.x - src.x) == 1 && abs(tar.y - src.y) == 2)
+          || (abs(tar.x - src.x) == 2 && abs(tar.y - src.y) == 1);
     case ROOK:
-      return tar_x == src_x || tar_y == src_y;
+      return tar.x == src.x || tar.y == src.y;
     case PAWN:
+      if (try_en_passant(board, piece, tar) == 1)
+        return 1;
       pawn_step = piece->moves_num == 0 ? 2 : 1;
-      if (piece->king == board->king_north)
-        return tar_x == src_x
-            && tar_y - src_y > 0
-            && tar_y - src_y <= pawn_step;
-      else if (piece->king == board->king_south)
-        return tar_x == src_x
-            && src_y - tar_y > 0
-            && src_y - tar_y <= pawn_step;
+      pawn_direction = (piece->king == board->king_north) ? 1 : -1;
+      return tar.x == src.x
+          && (tar.y - src.y) * pawn_direction > 0
+          && (tar.y - src.y) * pawn_direction <= pawn_step;
   }
   // this should not be reached normally
   return -1;
