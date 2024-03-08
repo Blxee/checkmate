@@ -218,7 +218,7 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
 int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
   point_t src;
   int y_direction;
-  piece_t *foe;
+  piece_t **foe;
 
   if (board == NULL || pawn == NULL)
     return -1;
@@ -232,17 +232,23 @@ int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
   else
     return -1;
 
+  // if target pos isn't 1 to the side
   if (abs(tar.x - src.x) != 1 || tar.y - src.y != y_direction)
     return 0;
 
-  foe = board->grid.matrix[src.x][tar.y].piece;
-  if (foe == NULL || foe->color == pawn->color)
+  // if foe not exists or is an ally
+  foe = &board->grid.matrix[src.x][tar.y].piece;
+  if (*foe == NULL || (*foe)->color == pawn->color)
     return 0;
 
-  if (foe->type != PAWN || /*not moved 2*/)
+  // if foe isn't a pawd which stepped 2 cells
+  if ((*foe)->type != PAWN || /*not moved 2*/)
     return 0;
 
+  // move to the side and take the foe
   piece_set_pos(board, pawn, tar);
+  free(*foe);
+  *foe = NULL;
   return 1;
 }
 
