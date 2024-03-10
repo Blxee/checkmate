@@ -241,7 +241,7 @@ int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
   if (*foe == NULL || (*foe)->color == pawn->color)
     return 0;
 
-  // if foe isn't a pawd which stepped 2 cells
+  // if foe isn't a pawn which stepped 2 cells in last turn
   if ((*foe)->type != PAWN || /*not moved 2*/)
     return 0;
 
@@ -267,7 +267,7 @@ int piece_pattern(board_t *board, piece_t *piece, point_t tar) {
 
   src = piece->pos;
 
-  // if piece trying to move to the same place
+  // if piece is trying to move to the same place
   if (tar.x == src.x && tar.y == src.y)
     return 0;
 
@@ -289,6 +289,7 @@ int piece_pattern(board_t *board, piece_t *piece, point_t tar) {
     case PAWN:
       if (try_en_passant(board, piece, tar) == 1)
         return 1;
+      // promote
       pawn_step = piece->moves_num == 0 ? 2 : 1;
       pawn_direction = (piece->king == board->king_north) ? 1 : -1;
       return tar.x == src.x
