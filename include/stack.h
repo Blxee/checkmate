@@ -5,7 +5,7 @@
 #define STACK_TYPE void *
 #endif // !STACK_TYPE
 
-#include <stdlib.h>
+#include "mem_utils.h"
 
 typedef struct stack_node_s {
   STACK_TYPE value;

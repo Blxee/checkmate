@@ -1,5 +1,4 @@
 #include "stack.h"
-#include "mem_utils.h"
 
 stack_t *stack_create(void) {
   stack_t *stack;
