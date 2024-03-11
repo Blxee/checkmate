@@ -28,11 +28,18 @@ void stack_push(stack_t *stack, STACK_TYPE value) {
   stack->size++;
 }
 
+STACK_TYPE stack_peek(stack_t *stack) {
+  if (stack == NULL || stack->head == NULL)
+    return 0;
+
+  return stack->head->value;
+}
+
 STACK_TYPE stack_pop(stack_t *stack) {
   STACK_TYPE value;
   stack_node_t *next;
 
-  if (stack == NULL || stack->head)
+  if (stack == NULL || stack->head == NULL)
     return 0;
 
   // extract value and next from head
