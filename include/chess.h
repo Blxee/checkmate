@@ -1,6 +1,10 @@
 #ifndef CHESS_H
 #define CHESS_H
 
+typedef struct move_s move_t;
+#define STACK_TYPE move_t
+#include "stack.h"
+
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
@@ -63,6 +67,9 @@ typedef struct cell_s {
   int threatened: 1;
 } cell_t;
 
+struct move_s {
+  int moveeee;
+};
 
 /**
  * struct board_s - represents the whole chess board.
@@ -80,7 +87,7 @@ typedef struct board_s {
     cell_t matrix[g_BOARD_SIZE][g_BOARD_SIZE];
   } grid;
   color_t turn;
-  unsigned int moves_num;
+  stack_t *moves_stack;
   piece_t *king_north;
   piece_t *king_south;
   piece_t *check_piece;
