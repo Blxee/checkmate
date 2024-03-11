@@ -27,5 +27,15 @@ int main(void) {
   printf("%s\n", my_stack->head->next == NULL ? "true" : "false");
   printf("\n");
 
+  stack_push(my_stack, 3);
+
+  printf("my_stack->head->next != NULL\n");
+  printf("%s\n", my_stack->head->next != NULL ? "true" : "false");
+  printf("\n");
+
+  printf("my_stack->size == 2\n");
+  printf("%s\n", my_stack->size == 2 ? "true" : "false");
+  printf("\n");
+
   stack_free(my_stack);
 }

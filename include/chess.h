@@ -1,10 +1,6 @@
 #ifndef CHESS_H
 #define CHESS_H
 
-typedef struct move_s move_t;
-#define STACK_TYPE move_t
-#include "stack.h"
-
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
@@ -24,6 +20,7 @@ typedef enum piece_type_e {
   PAWN   = 'p',
 } piece_type_t;
 
+
 /**
  * enum color_e - the colors of the board pieces.
  *
@@ -32,6 +29,7 @@ typedef enum color_e {
   BLACK = 'b',
   WHITE = 'w',
 } color_t;
+
 
 /**
  * struct point_s - represents a single point.
@@ -43,6 +41,7 @@ typedef struct point_s {
   int x;
   int y;
 } point_t;
+
 
 /**
  * struct piece_s - represents a chess piece.
@@ -56,6 +55,7 @@ typedef struct piece_s {
   struct piece_s *king;
 } piece_t;
 
+
 /**
  * struct cell_s: represents a single cell on the board.
  *
@@ -67,9 +67,21 @@ typedef struct cell_s {
   int threatened: 1;
 } cell_t;
 
-struct move_s {
-  int moveeee;
-};
+
+/**
+ * struct move_s - represents and contains data for a single chess move
+ */
+typedef struct move_s {
+  piece_t *piece;
+  piece_t *victim;
+  point_t start_pos;
+  point_t end_pos;
+} move_t;
+
+// include a stack with the newly defined move_s struct
+#define STACK_TYPE move_t
+#include "stack.h"
+
 
 /**
  * struct board_s - represents the whole chess board.
@@ -82,12 +94,9 @@ struct move_s {
  * @check_piece: the foe piece checking the king of the current player.
  */
 typedef struct board_s {
-  union {
-    cell_t vector[g_BOARD_CELLS];
-    cell_t matrix[g_BOARD_SIZE][g_BOARD_SIZE];
-  } grid;
+  cell_t grid[g_BOARD_SIZE][g_BOARD_SIZE];
   color_t turn;
-  stack_t *moves_stack;
+  fifo_stack_t *moves_stack;
   piece_t *king_north;
   piece_t *king_south;
   piece_t *check_piece;

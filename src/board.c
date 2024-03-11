@@ -1,4 +1,5 @@
 #include "chess.h"
+#include "mem_utils.h"
 
 extern int g_MAX_COLS;
 extern int g_MAX_ROWS;
@@ -25,23 +26,24 @@ board_t *board_create(void) {
 
   // init the cells of the board
   board->turn = (rand() & 1) ? BLACK : WHITE;
-  board->moves_num = 0;
+  board->moves_stack = stack_create();
   board->check_piece = NULL;
-  for (i = 0; i < g_BOARD_CELLS; i++)
-    board->grid.vector[i] = (cell_t){
-      .piece = NULL,
-      .threatened = 0,
-    };
+  for (i = 0; i < g_BOARD_SIZE; i++)
+    for (j = 0; j < g_BOARD_SIZE; j++)
+      board->grid[i][j] = (cell_t){
+        .piece = NULL,
+        .threatened = 0,
+      };
 
   // put the board pieces in starting position
   for (i = 0; i < g_BOARD_SIZE; i++) {
-    for (j = 0;j < g_BOARD_SIZE;j++) {
+    for (j = 0; j < g_BOARD_SIZE; j++) {
       const char *tile = g_BOARD_INIT[flip ? g_BOARD_SIZE - 1 - i : i] + (j * 2);
 
       if (tile[1] != ' ') {
-        board->grid.matrix[i][j].piece = malloc(sizeof(piece_t));
+        board->grid[i][j].piece = mem_alloc(sizeof(piece_t));
         // if not null
-        *board->grid.matrix[i][j].piece = (piece_t){
+        *board->grid[i][j].piece = (piece_t){
           .color = tile[0],
           .type = tile[1],
           .pos = (point_t){.x = i, .y = j},
@@ -65,8 +67,8 @@ void board_print(board_t *board) {
   k = 0;
   for (i = 0; i < g_BOARD_SIZE; i++) {
     for (j = 0; j < g_BOARD_SIZE; j++) {
-      if (board->grid.matrix[i][j].piece)
-        buf[k++] = board->grid.matrix[i][j].piece->type;
+      if (board->grid[i][j].piece)
+        buf[k++] = board->grid[i][j].piece->type;
       else
         buf[k++] = '.';
 
@@ -106,7 +108,7 @@ void board_show(board_t *board) {
     addstr("\u2588");
 
     for (int j = 0; j < g_BOARD_SIZE; j++) {
-      cell = &board->grid.matrix[i][j];
+      cell = &board->grid[i][j];
       fg = cell->piece && cell->piece->color == BLACK ? black_fg : white_fg;
       bg = (i + (j & 1)) & 1 ? black_bg : white_bg;
       attron(COLOR_PAIR(fg | bg) | A_BOLD);
@@ -124,7 +126,7 @@ void board_show(board_t *board) {
     addstr("\u2588");
 
     for (int j = 0; j < g_BOARD_SIZE; j++) {
-      cell = &board->grid.matrix[i][j];
+      cell = &board->grid[i][j];
       fg = cell->piece && cell->piece->color == BLACK ? black_fg : white_fg;
       bg = (i + (j & 1)) & 1 ? black_bg : white_bg;
       attron(COLOR_PAIR(fg | bg) | A_BOLD);
@@ -165,11 +167,11 @@ int piece_set_pos(board_t *board, piece_t *piece, point_t tar) {
     return 0;
 
   // empty piece position
-  board->grid.matrix[piece->pos.x][piece->pos.y].piece = NULL;
-  // free previous piece if any
-  target_cell = &board->grid.matrix[tar.x][tar.y];
+  board->grid[piece->pos.x][piece->pos.y].piece = NULL;
+  // free victim piece if any
+  target_cell = &board->grid[tar.x][tar.y];
   if (target_cell->piece != NULL)
-    free(target_cell->piece);
+    mem_free(target_cell->piece);
   // move piece to new position
   target_cell->piece = piece;
   piece->pos = tar;
@@ -198,7 +200,7 @@ int try_castling(board_t *board, piece_t *king, point_t tar) {
 
   // if rook isn't of correct type and color or has moved already
   rook_x = tar.x < src.x ? 0 : (g_BOARD_SIZE - 1);
-  rook = board->grid.matrix[rook_x][src.y].piece;
+  rook = board->grid[rook_x][src.y].piece;
   if (rook == NULL || rook->type != ROOK || rook->color != king->color || rook->moves_num > 0)
     return 0;
 
@@ -237,7 +239,7 @@ int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
     return 0;
 
   // if foe not exists or is an ally
-  foe = &board->grid.matrix[src.x][tar.y].piece;
+  foe = &board->grid[src.x][tar.y].piece;
   if (*foe == NULL || (*foe)->color == pawn->color)
     return 0;
 
@@ -261,7 +263,7 @@ int piece_pattern(board_t *board, piece_t *piece, point_t tar) {
     return -1;
 
   // if target position has an ally instead of a foe
-  foe = board->grid.matrix[tar.x][tar.y].piece;
+  foe = board->grid[tar.x][tar.y].piece;
   if (foe != NULL && foe->color == piece->color)
     return 0;
 
@@ -306,7 +308,7 @@ int piece_protecting(board_t *board, int x, int y) {
     return -1;
 
   // if piece is not threatened then it's not protecting
-  if (!board->grid.matrix[x][y].threatened)
+  if (!board->grid[x][y].threatened)
     return 0;
 }
 

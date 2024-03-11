@@ -5,22 +5,23 @@
 #define STACK_TYPE void *
 #endif // !STACK_TYPE
 
-#include "mem_utils.h"
 
 typedef struct stack_node_s {
   STACK_TYPE value;
   struct stack_node_s *next;
 } stack_node_t;
 
-typedef struct stack_s {
+
+typedef struct fifo_stack_s {
   stack_node_t *head;
   unsigned int size;
-} stack_t;
+} fifo_stack_t;
 
-stack_t *stack_create(void);
-void stack_push(stack_t *stack, STACK_TYPE value);
-STACK_TYPE stack_peek(stack_t *stack);
-STACK_TYPE stack_pop(stack_t *stack);
-void stack_free(stack_t *stack);
+
+fifo_stack_t *stack_create(void);
+void stack_push(fifo_stack_t *stack, STACK_TYPE value);
+STACK_TYPE stack_peek(fifo_stack_t *stack);
+STACK_TYPE stack_pop(fifo_stack_t *stack);
+void stack_free(fifo_stack_t *stack);
 
 #endif // !STACK_H

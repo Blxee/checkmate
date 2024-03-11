@@ -1,18 +1,21 @@
 #include "stack.h"
+#include "mem_utils.h"
 
-stack_t *stack_create(void) {
-  stack_t *stack;
+
+fifo_stack_t *stack_create(void) {
+  fifo_stack_t *stack;
 
   stack = mem_alloc(sizeof(*stack));
   if (stack == NULL)
     return NULL;
 
-  *stack = (stack_t){ .head = NULL, .size = 0 };
+  *stack = (fifo_stack_t){ .head = NULL, .size = 0 };
 
   return stack;
 }
 
-void stack_push(stack_t *stack, STACK_TYPE value) {
+
+void stack_push(fifo_stack_t *stack, STACK_TYPE value) {
   stack_node_t *new;
 
   if (stack == NULL)
@@ -28,14 +31,16 @@ void stack_push(stack_t *stack, STACK_TYPE value) {
   stack->size++;
 }
 
-STACK_TYPE stack_peek(stack_t *stack) {
+
+STACK_TYPE stack_peek(fifo_stack_t *stack) {
   if (stack == NULL || stack->head == NULL)
     return 0;
 
   return stack->head->value;
 }
 
-STACK_TYPE stack_pop(stack_t *stack) {
+
+STACK_TYPE stack_pop(fifo_stack_t *stack) {
   STACK_TYPE value;
   stack_node_t *next;
 
@@ -54,7 +59,8 @@ STACK_TYPE stack_pop(stack_t *stack) {
   return value;
 }
 
-void stack_free(stack_t *stack) {
+
+void stack_free(fifo_stack_t *stack) {
   stack_node_t *node, *next;
 
   if (stack == NULL)
