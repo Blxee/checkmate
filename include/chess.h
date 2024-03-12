@@ -74,6 +74,7 @@ typedef struct cell_s {
 typedef struct move_s {
   piece_t *piece;
   piece_t *victim;
+  piece_t *promoted;
   point_t start_pos;
   point_t end_pos;
 } move_t;

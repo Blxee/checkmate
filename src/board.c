@@ -17,7 +17,7 @@ static const char *const g_BOARD_INIT[] = {
 
 
 board_t *board_create(void) {
-  board_t *board = (board_t *)malloc(sizeof(*board));
+  board_t *board = (board_t *)mem_calloc(1, sizeof(*board));
   int flip = rand() & 1;
   int i, j;
 
@@ -27,13 +27,6 @@ board_t *board_create(void) {
   // init the cells of the board
   board->turn = (rand() & 1) ? BLACK : WHITE;
   board->moves_stack = stack_create();
-  board->check_piece = NULL;
-  for (i = 0; i < g_BOARD_SIZE; i++)
-    for (j = 0; j < g_BOARD_SIZE; j++)
-      board->grid[i][j] = (cell_t){
-        .piece = NULL,
-        .threatened = 0,
-      };
 
   // put the board pieces in starting position
   for (i = 0; i < g_BOARD_SIZE; i++) {
@@ -159,7 +152,7 @@ piece_t **board_pieces_between(board_t *board, point_t pos1, point_t pos2) {
 int piece_set_pos(board_t *board, piece_t *piece, point_t tar) {
   cell_t *target_cell;
 
-  if (piece == NULL)
+  if (board == NULL || piece == NULL)
     return 0;
 
   if (tar.x < 0 || tar.x >= g_BOARD_SIZE
@@ -221,6 +214,7 @@ int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
   point_t src;
   int y_direction;
   piece_t **foe;
+  move_t last_move;
 
   if (board == NULL || pawn == NULL)
     return -1;
@@ -243,13 +237,16 @@ int try_en_passant(board_t *board, piece_t *pawn, point_t tar) {
   if (*foe == NULL || (*foe)->color == pawn->color)
     return 0;
 
-  // if foe isn't a pawn which stepped 2 cells in last turn
-  if ((*foe)->type != PAWN || /*not moved 2*/)
+  // if foe isn't a pawn which stepped 2 cells last turn
+  last_move = stack_peek(board->moves_stack);
+  if ((*foe)->type != PAWN
+      || last_move.piece != *foe
+      || abs(last_move.end_pos.y - last_move.start_pos.y) != 2)
     return 0;
 
   // move to the side and take the foe
   piece_set_pos(board, pawn, tar);
-  free(*foe);
+  // mem_free(*foe);
   *foe = NULL;
   return 1;
 }

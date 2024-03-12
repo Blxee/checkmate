@@ -3,7 +3,7 @@
 #include "stack.h"
 
 int main(void) {
-  stack_t *my_stack = stack_create();
+  fifo_stack_t *my_stack = stack_create();
 
   printf("my_stack->head == NULL\n");
   printf("%s\n", my_stack->head == NULL ? "true" : "false");
